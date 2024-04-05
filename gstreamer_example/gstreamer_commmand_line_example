@@ -1,0 +1,9 @@
+
+#original
+ gst-launch-1.0 -e multifilesrc location="%d.jpg" index=1 caps="image/jpeg,framerate=10/1" ! jpegdec ! videoconvert ! queue ! x264enc ! queue ! mp4mux ! filesink location=image.mp
+
+ # problem
+
+ gstcoreelements.dll
+ gstreamer-1.0.0.dll
+ gstplayback.dll

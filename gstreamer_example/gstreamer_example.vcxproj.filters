@@ -18,5 +18,22 @@
     <ClCompile Include="gstreamer_example.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="short_cutting_pipeline_ex3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gstreamer_streaming_server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="short_cutting_pipeline_ex3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gstreamer_streaming_server.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tools.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

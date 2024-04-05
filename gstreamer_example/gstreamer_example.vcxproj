@@ -112,7 +112,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(GSTREAMER_MSI_INSTALL_FOLDER)/lib;$(GSTREAMER_MSI_INSTALL_FOLDER)/lib/gstreamer-1.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <AdditionalDependencies>gobject-2.0.lib;glib-2.0.lib;gstreamer-1.0.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;gstapp-1.0.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gobject-2.0.lib;glib-2.0.lib;gstreamer-1.0.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;gstapp-1.0.lib;jpeg.lib;mpg123.lib;png16.lib;gstaudio-1.0.lib;openjp2.lib;turbojpeg.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,6 +133,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="gstreamer_example.cpp" />
+    <ClCompile Include="gstreamer_streaming_server.cpp" />
+    <ClCompile Include="short_cutting_pipeline_ex3.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gstreamer_streaming_server.h" />
+    <ClInclude Include="short_cutting_pipeline_ex3.h" />
+    <ClInclude Include="Tools.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
