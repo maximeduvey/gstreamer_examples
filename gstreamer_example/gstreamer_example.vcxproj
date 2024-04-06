@@ -132,11 +132,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="gstreamer_client_receiver.cpp" />
     <ClCompile Include="gstreamer_example.cpp" />
     <ClCompile Include="gstreamer_streaming_server.cpp" />
     <ClCompile Include="short_cutting_pipeline_ex3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gstreamer_client_receiver.h" />
     <ClInclude Include="gstreamer_streaming_server.h" />
     <ClInclude Include="short_cutting_pipeline_ex3.h" />
     <ClInclude Include="Tools.hpp" />

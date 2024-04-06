@@ -24,6 +24,9 @@
     <ClCompile Include="gstreamer_streaming_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gstreamer_client_receiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="short_cutting_pipeline_ex3.h">
@@ -33,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tools.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gstreamer_client_receiver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

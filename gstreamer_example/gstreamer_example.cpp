@@ -17,6 +17,7 @@
 #include <gst/app/gstappsrc.h>
 
 #include "gstreamer_streaming_server.h"
+#include "gstreamer_client_receiver.h"
 #include "short_cutting_pipeline_ex3.h"
 
 #include "Tools.hpp"
@@ -569,7 +570,7 @@ int example_1_hello_world_functionnal(int argc, char* argv[])
 int main(int ac, char* av[])
 {
     try {
-    // example_1_hello_world_functionnal(ac, av);
+     //example_1_hello_world_functionnal(ac, av);
      //example_2_gstreamer_concepts_functionnal(ac, av);
 
     short_cutting_pipeline_ex3 examples;
@@ -579,7 +580,7 @@ int main(int ac, char* av[])
     // examples.example_6_show_cap(ac, av);
     // examples.example_7_multithreading(ac, av);
     
-    //examples.example_8_shortcutting_pipeline(ac, av);
+    // examples.example_8_shortcutting_pipeline(ac, av);
 
     //images_to_displayed_video_example(ac, av);
     //images_to_video_example(ac, av);
@@ -596,8 +597,13 @@ int main(int ac, char* av[])
     //test.start_example_4(ac, av);
 
 
-     gstreamer_streaming_server streaming(ac, av);
-     streaming.StartPlaying();
+	 gstreamer_client_receiver* client = new gstreamer_client_receiver();
+	 client->Init(ac, av);
+     //client->start();
+
+	 gstreamer_streaming_server streaming(ac, av, client);
+     std::thread(&gstreamer_client_receiver::start, client).detach();
+	 streaming.StartPlaying();
 
 
     }

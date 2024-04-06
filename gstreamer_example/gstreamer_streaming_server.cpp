@@ -6,9 +6,16 @@
 static std::vector<std::string> loaded_images;
 static guint frames_encoded;
 static CustomData mdata;
+ 
+static gstreamer_client_receiver *_client;
+static bool _debug_log = false;
 
-gstreamer_streaming_server::gstreamer_streaming_server(int argc, char* argv[])
+static bool debug_server_auto_display = false;
+
+
+gstreamer_streaming_server::gstreamer_streaming_server(int argc, char* argv[], gstreamer_client_receiver* client)
 {
+    _client = client;
     Init(argc, argv);
 }
 
@@ -19,7 +26,7 @@ gstreamer_streaming_server::~gstreamer_streaming_server()
 
 GstFlowReturn gstreamer_streaming_server::on_new_buffer(GstAppSink* sink, gpointer data)
 {
-    g_print("on_new_buffer !!! \n");
+   if (_debug_log == true)  g_print("on_new_buffer !!! \n");
     return GST_FLOW_OK;
 
 }
@@ -38,14 +45,29 @@ void gstreamer_streaming_server::Init(int argc, char* argv[])
     mdata.encoder = gst_element_factory_make("x264enc", "encoder");
 
     // le type de muxer est super important ! , c'est lui qui définie quand le "pull-sample" va etre appeler car il définie quand le fichier est "utilisable"
-    // par exemple le format mp4 n'est utilisable que quand le fihcier est complet (quand il recoit EOS)
+    // par exemple le format mp4 n'est utilisable que quand le fichier est complet (quand il recoit EOS)
     // donc il ne peut pas etre streamer
     mdata.muxer = gst_element_factory_make("mpegtsmux", "muxer");
     mdata.appsink = gst_element_factory_make("appsink", "sink");
 
-    if (!mdata.pipeline || !mdata.appsrc || !mdata.decoder || !mdata.converter || !mdata.encoder || !mdata.muxer || !mdata.appsink) {
-        g_printerr("Not all elements could be created.\n");
-        return;
+
+    //GstElement* tee = gst_element_factory_make("tee", "tee");
+    //GstElement* queue1 = gst_element_factory_make("queue", "queue1");
+    //GstElement* queue2 = gst_element_factory_make("queue", "queue2");
+    //GstElement* sink = gst_element_factory_make("autovideosink", "video-output");
+
+    if (debug_server_auto_display == true) {
+        //if (!mdata.pipeline || !mdata.appsrc || !mdata.decoder || !mdata.converter || !mdata.encoder || !mdata.muxer || !mdata.appsink || !tee || !queue1 || !queue2 || !sink) {
+        //    if (_debug_log) g_printerr("Not all elements could be created.\n");
+        //    return;
+        //}
+    }
+    else
+    {
+        if (!mdata.pipeline || !mdata.appsrc || !mdata.decoder || !mdata.converter || !mdata.encoder || !mdata.muxer || !mdata.appsink) {
+            if (_debug_log == true)  g_printerr("Not all elements could be created.\n");
+            return;
+        }
     }
 
     GstCaps* caps = gst_caps_new_simple("image/jpeg",
@@ -56,13 +78,42 @@ void gstreamer_streaming_server::Init(int argc, char* argv[])
     g_object_set(mdata.appsrc, "caps", caps, "format", GST_FORMAT_TIME, NULL);
     gst_caps_unref(caps);
 
-
-    gst_bin_add_many(GST_BIN(mdata.pipeline), mdata.appsrc, mdata.decoder, mdata.converter, mdata.encoder, mdata.muxer, mdata.appsink, NULL);
-    if (!gst_element_link_many(mdata.appsrc, mdata.decoder, mdata.converter, mdata.encoder, mdata.muxer, mdata.appsink, NULL))
+    if (debug_server_auto_display == true)
     {
-        g_printerr("Elements could not be linked.\n");
-        gst_object_unref(mdata.pipeline);
-        throw std::runtime_error("Could not link object.\n");
+        //gst_bin_add_many(GST_BIN(mdata.pipeline), mdata.appsrc, mdata.decoder, mdata.converter, mdata.encoder, tee, queue1, mdata.muxer, mdata.appsink, queue2, sink, NULL);
+        //if (!gst_element_link_many(mdata.appsrc, mdata.decoder, mdata.converter, mdata.encoder, tee, NULL)) {
+        //    if (_debug_log) g_printerr("Failed to link elements up to tee.\n");
+        //}
+
+        //if (!gst_element_link_many(mdata.appsrc, mdata.decoder, mdata.converter, mdata.encoder, tee, NULL)) {
+        //    if (_debug_log) g_printerr("Failed to link elements up to tee.\n");
+        //}
+
+        //// Link from tee to muxer -> appsink
+        //if (!gst_element_link_many(queue1, mdata.muxer, mdata.appsink, NULL)) {
+        //    if (_debug_log) g_printerr("Failed to link elements for muxer branch.\n");
+        //}
+
+        //// Link from tee to sink for direct display
+        //if (!gst_element_link_many(queue2, sink, NULL)) {
+        //    if (_debug_log) g_printerr("Failed to link elements for display branch.\n");
+        //}
+
+        //// Manually link the tee to each queue
+        //if (!gst_element_link_pads(tee, "src_0", queue1, "sink") || !gst_element_link_pads(tee, "src_1", queue2, "sink")) {
+        //    if (_debug_log) g_printerr("Failed to link tee to queues.\n");
+        //}
+
+    }
+    else
+    {
+        gst_bin_add_many(GST_BIN(mdata.pipeline), mdata.appsrc, mdata.decoder, mdata.converter, mdata.encoder, mdata.muxer, mdata.appsink, NULL);
+        if (!gst_element_link_many(mdata.appsrc, mdata.decoder, mdata.converter, mdata.encoder, mdata.muxer, mdata.appsink, NULL))
+        {
+            if (_debug_log == true)  g_printerr("Elements could not be linked.\n");
+            gst_object_unref(mdata.pipeline);
+            throw std::runtime_error("Could not link object.\n");
+        }
     }
 
 
@@ -72,9 +123,8 @@ void gstreamer_streaming_server::Init(int argc, char* argv[])
     g_signal_connect(mdata.appsrc, "need-data", G_CALLBACK(gstreamer_streaming_server::on_new_data), &mdata);
     g_signal_connect(mdata.appsrc, "enough-data", G_CALLBACK(on_stop_feed), NULL);
 
-    g_signal_connect(mdata.appsink, "new-buffer", G_CALLBACK(on_new_buffer), NULL);
 
-    g_print("Init done.\n");
+   if (_debug_log == true)  g_print("Init done.\n");
 }
 
 std::string gstreamer_streaming_server::getImage()
@@ -93,7 +143,7 @@ GstFlowReturn  gstreamer_streaming_server::on_new_data(GstElement* appsrc, guint
     GstMapInfo map;
 
     nbr_call_new_data_total += image_data.size();
-    g_print("need_data(%d) :%d - total : %d \n", ++nbr_call_new_data, frames_encoded, nbr_call_new_data_total);
+   if (_debug_log == true)  g_print("need_data(%d) :%d - total : %d \n", ++nbr_call_new_data, frames_encoded, nbr_call_new_data_total);
 
     buffer = gst_buffer_new_allocate(NULL, image_data.size(), NULL);
     gst_buffer_map(buffer, &map, GST_MAP_WRITE);
@@ -102,7 +152,7 @@ GstFlowReturn  gstreamer_streaming_server::on_new_data(GstElement* appsrc, guint
     GstFlowReturn ret;
     g_signal_emit_by_name(mdata.appsrc, "push-buffer", buffer, &ret);
     if (ret != GST_FLOW_OK) {
-        g_print("!!!!ERROR !!! \n");
+       if (_debug_log == true)  g_print("!!!!ERROR !!! \n");
     }
 
     gst_buffer_unmap(buffer, &map);
@@ -116,7 +166,7 @@ GstFlowReturn  gstreamer_streaming_server::on_new_data(GstElement* appsrc, guint
 
 void gstreamer_streaming_server::on_stop_feed(GstElement* source)
 {
-    g_print("on_stop_feed()\n");
+   if (_debug_log == true)  g_print("on_stop_feed()\n");
 
 }
 
@@ -126,7 +176,7 @@ static int nbr_call_new_sample_total = 0;
 
 GstFlowReturn gstreamer_streaming_server::on_new_sample(GstAppSink* sink, gpointer data)
 {
-    g_print("non_new_sample(%d).\n", ++nbr_call_new_sample);
+   if (_debug_log == true)  g_print("non_new_sample(%d).\n", ++nbr_call_new_sample);
         GstSample* sample;
         g_signal_emit_by_name(sink, "pull-sample", &sample);
         if (sample) {
@@ -136,10 +186,13 @@ GstFlowReturn gstreamer_streaming_server::on_new_sample(GstAppSink* sink, gpoint
 
             std::string buffer_str((char*)map.data, map.size);
             nbr_call_new_sample_total += map.size;
-            g_print("non_new_sample sending: %d.\n", ++nbr_call_new_sample_total);
+           if (_debug_log == true)  g_print("non_new_sample sending: %d.\n", ++nbr_call_new_sample_total);
             
-           // g_print("Buffer_ready_to_send sending.\n");
+           //if (_debug_log == true)  g_print("Buffer_ready_to_send sending.\n");
             //sendMessage(buffer_str);
+          
+           if (_client != nullptr)
+               _client->AddMapInfo(map);
 
             gst_buffer_unmap(buffer, &map);
             gst_sample_unref(sample);
@@ -154,22 +207,23 @@ GstFlowReturn gstreamer_streaming_server::on_new_sample(GstAppSink* sink, gpoint
 
 void gstreamer_streaming_server::on_eos(GstAppSink* appsink, gpointer user_data)
 {
-    g_print("ON EOS-) \n");
+   if (_debug_log == true)  g_print("ON EOS-) \n");
     exit(1);
 }
 
 gboolean gstreamer_streaming_server::stop_main_loop(gpointer data) {
     GMainLoop* loop = (GMainLoop*)data;
     g_main_loop_quit(loop);
-    g_print("stop_main_loop() Timeout reached, stopping main loop...\n");
+   if (_debug_log == true)  g_print("stop_main_loop() Timeout reached, stopping main loop...\n");
     return G_SOURCE_REMOVE; // Do not call again
 }
 
 int gstreamer_streaming_server::StartPlaying()
 {
-    g_print("StartPlaying.\n");
+   if (_debug_log == true)  g_print("StartPlaying.\n");
     mdata.main_loop = g_main_loop_new(NULL, FALSE);
-    if (!mdata.pipeline) {
+    if (!mdata.pipeline) 
+    {
         return -1;  // Initialization failed
     }
 
@@ -177,11 +231,11 @@ int gstreamer_streaming_server::StartPlaying()
     gst_element_set_state(mdata.pipeline, GST_STATE_PLAYING);
     //g_timeout_add_seconds(10, (GSourceFunc)stop_main_loop, mdata.main_loop);
 
-    g_print("main_loop.\n");
+   if (_debug_log == true)  g_print("main_loop.\n");
     // Create and run the main loop
     g_main_loop_run(mdata.main_loop);
 
-    g_print("loop ended.\n");
+   if (_debug_log == true)  g_print("loop ended.\n");
     // Clean up on exit
     gst_element_set_state(mdata.pipeline, GST_STATE_NULL);
     gst_object_unref(GST_OBJECT(mdata.pipeline));

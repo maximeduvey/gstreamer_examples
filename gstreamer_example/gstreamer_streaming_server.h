@@ -1,12 +1,13 @@
 #pragma once
 
+#include "gstreamer_client_receiver.h"
+
 #include <gst/gst.h>
 #include <string.h>
 #include <string>
 #include <iostream>
 #include <gst/app/gstappsrc.h>
 #include <gst/app/gstappsink.h>
-
 
 #define WIDTH 320
 #define HEIGHT 240
@@ -28,7 +29,7 @@ private:
 
 public:
 
-	gstreamer_streaming_server(int argc, char* argv[]);
+	gstreamer_streaming_server(int argc, char* argv[], gstreamer_client_receiver *client);
 	virtual ~gstreamer_streaming_server();
 
 
@@ -45,9 +46,9 @@ public:
 	static GstFlowReturn on_pull_preroll(GstAppSink* sink, gpointer data);
 	static GstFlowReturn on_new_buffer(GstAppSink* sink, gpointer data);
 
+
 private:
 
 	static gboolean stop_main_loop(gpointer data);
-
 
 };
