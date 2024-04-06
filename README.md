@@ -1,6 +1,9 @@
 Hello, this project is a simple github to display how to use different functionnalities of gstreamer.
 
 It's a Visual studio 2022 C++ project using the msi https://gstreamer.freedesktop.org/download/ MSVC 64-bit (VS 2019, Release CRT) gstreamer.
+In the project configuration I'm using the environment variable: GSTREAMER_MSI_INSTALL_FOLDER to link with the gstreamer install folder
+So you just have to set it to the install folder and it should work
+(if you want to execute the project outside VS, you may need to add the bin/ and lib/ to your PATH env variable)
 
 In it's current form the code is not clean as it's a construction site that help me understand how gstreamer work.
 
